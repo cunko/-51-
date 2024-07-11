@@ -40,7 +40,7 @@
 LED模仿的是家里的电器，如灯，冰箱，电视
 舵机模仿的是家里面的电动窗帘
 
-![](\images\1.jpg)
+![0](\images\1.jpg)
 
 蓝牙功能是通过中断开启的，这样通过蓝牙串口APP发送信息来控制舵机和几个LED
 LCD12864上会实时显示温度湿度和当前的模式
@@ -65,8 +65,11 @@ key4控制led3
 
 ## 项目图片
 
-![](\images\2.jpg)
-![](\images\3.jpg)
-![](\images\4.jpg)
-![](\images\6.jpg)
+![1](\images\2.jpg)
+
+![2](\images\3.jpg)
+
+![3](\images\4.jpg)
+
+![4](\images\6.png)
 
