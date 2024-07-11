@@ -1,0 +1,8 @@
+".\Objects\main.obj",
+".\Objects\STARTUP.obj",
+".\Objects\lcd12864.obj",
+".\Objects\DHT11.obj",
+".\Objects\UART.obj",
+".\Objects\timer0.obj" 
+TO ".\Objects\zhinengjiaju" 
+PRINT(".\Listings\zhinengjiaju.m51")

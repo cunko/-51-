@@ -1,0 +1,282 @@
+C51 COMPILER V9.54   MAIN                                                                  07/11/2024 14:13:02 PAGE 1   
+
+
+C51 COMPILER V9.54, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: D:\FE\Keil5\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\mai
+                    -n.lst) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          #include <reg52.h>                              // 头文件包含
+   2          #include <intrins.h>
+   3          #include "Uart.h"
+   4          #include "DHT11.h"
+   5          #include "lcd12864.h"
+   6          
+   7          
+   8          #define uchar unsigned char     // 以后unsigned char就可以用uchar代替
+   9          #define uint  unsigned int      // 以后unsigned int 就可以用uint 代替
+  10          
+  11          sbit guang = P1^0;
+  12          sbit led1 = P1^1;
+  13          sbit led2 = P1^2;
+  14          sbit led3 = P1^3;
+  15          
+  16          sbit key1 = P3^5;
+  17          sbit key2 = P3^4;
+  18          sbit key3 = P3^3;
+  19          sbit key4 = P3^2;
+  20          
+  21          char zhuangtai = 0;                     //模式切换
+  22          char dianji = 0;                        //模式切换
+  23          
+  24          char flag1=0;
+  25          
+  26          sbit SG_PWM=P1^4;                                                       //信号控制引脚
+  27          unsigned char count=0;                                       //计次  赋初值为0
+  28          unsigned char PWM_count=0;                  //0--0度，2--45度，4--90度，6--135度，8--180度
+  29          
+  30          int shoudao;
+  31          
+  32          int a;
+  33          int pos = 50;                           //默认延时0.5ms 角度0度，复位值
+  34          
+  35          sbit PWM_OUT=P1^4;                              //PWM输出口
+  36          
+  37          void chuli();
+  38          void moshi();
+  39          
+  40          void delay(uint i)
+  41          {
+  42   1              while(i--);
+  43   1      }
+  44          
+  45          /*********************************************************/
+  46          // 主函数
+  47          /*********************************************************/
+  48          void main()
+  49          {
+  50   1              LcdInit();                                                      // 液晶功能的初始化
+  51   1              Uart_Init();
+  52   1              
+  53   1              
+  54   1              wri_string(1,2,"智能家居");
+C51 COMPILER V9.54   MAIN                                                                  07/11/2024 14:13:02 PAGE 2   
+
+  55   1              wri_string(2,0,"温度：");
+  56   1              wri_string(3,0,"湿度：");
+  57   1              
+  58   1              while(1)
+  59   1              {
+  60   2                      DHT11_receive();
+  61   2                      lcd_write_char(2,3,temp_value);
+  62   2                      lcd_write_char(3,3,humi_value);
+  63   2                      wri_string(2,4,"℃");
+  64   2                      wri_string(3,4,"%");
+  65   2                      
+  66   2                      chuli();
+  67   2                      
+  68   2                      if(key1 == 0)
+  69   2                      {
+  70   3                              delay(1000);
+  71   3                              zhuangtai++;
+  72   3                              
+  73   3                      }
+  74   2                      if(zhuangtai == 2)
+  75   2                      {
+  76   3                              zhuangtai = 0;
+  77   3                      }
+  78   2                      
+  79   2                      moshi();
+  80   2                                              
+  81   2              }
+  82   1      }
+  83          
+  84          void UART_Routine()  interrupt 4
+  85          {       
+  86   1              if(RI==1)
+  87   1              {       
+  88   2                      shoudao =SBUF;                                     //发送的数据SBUF，赋给P2
+  89   2                      flag1 = 1;
+  90   2                RI=0;
+  91   2              }
+  92   1      }
+  93          
+  94          
+  95          void chuli()
+  96          {
+  97   1              if(flag1 == 1)
+  98   1              {
+  99   2                                                      //========================================================================
+ 100   2                      flag1 = 0;
+ 101   2                      if(shoudao==0X01)                                  //0x01这个值可以通过蓝牙调试器编辑模式设置
+ 102   2                      {
+ 103   3                              pos = 50;
+ 104   3                              for(a = 0;a < 6;a++)
+ 105   3                              {
+ 106   4                                      PWM_OUT = 1;
+ 107   4                                      delay(pos);
+ 108   4                                      PWM_OUT = 0;
+ 109   4                                      delay(2000-pos);
+ 110   4                              }
+ 111   3                      }else
+ 112   2      //              if(shoudao==0X03)                                  //0x03这个值可以通过蓝牙调试器编辑模式设置
+ 113   2      //              {
+ 114   2      //               pos = 75;
+ 115   2      //                      for(a = 0;a < 6;a++)
+ 116   2      //                      {
+C51 COMPILER V9.54   MAIN                                                                  07/11/2024 14:13:02 PAGE 3   
+
+ 117   2      //                              PWM_OUT = 1;
+ 118   2      //                              delay(pos);
+ 119   2      //                              PWM_OUT = 0;
+ 120   2      //                              delay(2000-pos);
+ 121   2      //                      }
+ 122   2      //              }
+ 123   2      //              if(shoudao==0X07)                                  //0x07这个值可以通过蓝牙调试器编辑模式设置
+ 124   2      //              {
+ 125   2      //               pos = 150;
+ 126   2      //                      for(a = 0;a < 6;a++)
+ 127   2      //                      {
+ 128   2      //                              PWM_OUT = 1;
+ 129   2      //                              delay(pos);
+ 130   2      //                              PWM_OUT = 0;
+ 131   2      //                              delay(2000-pos);
+ 132   2      //                      }
+ 133   2      //              }
+ 134   2                      if(shoudao==0X09)                                  //0x09这个值可以通过蓝牙调试器编辑模式设置
+ 135   2                      {
+ 136   3                       pos = 250;
+ 137   3                              for(a = 0;a < 6;a++)
+ 138   3                              {
+ 139   4                                      PWM_OUT = 1;
+ 140   4                                      delay(pos);
+ 141   4                                      PWM_OUT = 0;
+ 142   4                                      delay(2000-pos);
+ 143   4                              }
+ 144   3                      }
+ 145   2                      //========================================================================
+ 146   2                      if(shoudao==0X00)                                  //0x09这个值可以通过蓝牙调试器编辑模式设置
+ 147   2                      {
+ 148   3                      led1=1;
+ 149   3                      } else
+ 150   2                      if(shoudao==0X02)                                  //0x09这个值可以通过蓝牙调试器编辑模式设置
+ 151   2                      {
+ 152   3                      led1=0;
+ 153   3                      } else
+ 154   2                      if(shoudao==0X04)                                  //0x09这个值可以通过蓝牙调试器编辑模式设置
+ 155   2                      {
+ 156   3                      led2=1;
+ 157   3                      } else
+ 158   2                      if(shoudao==0X05)                                  //0x09这个值可以通过蓝牙调试器编辑模式设置
+ 159   2                      {
+ 160   3                      led2=0;
+ 161   3                      } else
+ 162   2                      if(shoudao==0X06)                                  //0x09这个值可以通过蓝牙调试器编辑模式设置
+ 163   2                      {
+ 164   3                      led3=1;
+ 165   3                      } else  
+ 166   2                      if(shoudao==0X08)                                  //0x09这个值可以通过蓝牙调试器编辑模式设置
+ 167   2                      {
+ 168   3                      led3=0;
+ 169   3                      }
+ 170   2              }
+ 171   1      }
+ 172          
+ 173          
+ 174          void moshi()
+ 175          {
+ 176   1              if(zhuangtai == 1)
+ 177   1              {
+ 178   2                      wri_string(4,2,"智能模式");
+C51 COMPILER V9.54   MAIN                                                                  07/11/2024 14:13:02 PAGE 4   
+
+ 179   2                      if(temp_value == 26)
+ 180   2                      {
+ 181   3                              pos = 250;
+ 182   3                              for(a = 0;a < 6;a++)
+ 183   3                              {
+ 184   4                                      PWM_OUT = 1;
+ 185   4                                      delay(pos);
+ 186   4                                      PWM_OUT = 0;
+ 187   4                                      delay(2000-pos);
+ 188   4                              }
+ 189   3                      }
+ 190   2                      else
+ 191   2                      if(temp_value == 24)
+ 192   2                      {
+ 193   3                              pos = 50;
+ 194   3                              for(a = 0;a < 6;a++)
+ 195   3                              {
+ 196   4                                      PWM_OUT = 1;
+ 197   4                                      delay(pos);
+ 198   4                                      PWM_OUT = 0;
+ 199   4                                      delay(2000-pos);
+ 200   4                              }
+ 201   3                      }
+ 202   2                      
+ 203   2                      if(guang == 1)
+ 204   2                      {
+ 205   3                              led1 = 1;
+ 206   3                      }
+ 207   2                      else
+ 208   2                      {
+ 209   3                              led1 = 0;
+ 210   3                      }
+ 211   2                      if(key3 == 0)
+ 212   2                      {
+ 213   3                              delay(100);
+ 214   3                              temp_value=24;
+ 215   3                      }else
+ 216   2                      if(key4 == 0)
+ 217   2                      {
+ 218   3                              delay(100);
+ 219   3                              temp_value=26;
+ 220   3                      }
+ 221   2                      
+ 222   2              }
+ 223   1              if(zhuangtai == 0)
+ 224   1              {
+ 225   2                      wri_string(4,2,"普通模式");
+ 226   2                      
+ 227   2                      if(key2 == 0)
+ 228   2                      {
+ 229   3                              
+ 230   3                              led1 = !led1;
+ 231   3                              Lcd12864_Delay1ms(100);
+ 232   3                      }else
+ 233   2                      if(key3 == 0)
+ 234   2                      {
+ 235   3                              led2 = !led2;
+ 236   3                              Lcd12864_Delay1ms(100);
+ 237   3                      }else
+ 238   2                      if(key4 == 0)
+ 239   2                      {
+ 240   3                              led3 = !led3;
+C51 COMPILER V9.54   MAIN                                                                  07/11/2024 14:13:02 PAGE 5   
+
+ 241   3                              Lcd12864_Delay1ms(100);
+ 242   3                      }
+ 243   2                      
+ 244   2                      
+ 245   2                      
+ 246   2                      
+ 247   2                      
+ 248   2              }
+ 249   1      }
+ 250          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    516    ----
+   CONSTANT SIZE    =     46    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     11    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
